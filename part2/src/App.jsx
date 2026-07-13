@@ -1,4 +1,5 @@
 import personsService from "./services/persons"
+import Notification from './components/Notification.jsx'
 import { useState, useEffect } from "react"
 
 const App = () => {
@@ -13,6 +14,7 @@ const App = () => {
   const [newName, setNewName] = useState("")
   const [newNumber, setNewNumber] = useState("")
   const [filter, setNewFilter] = useState("")
+	const [notifMsg, setNotifMsg] = useState(null)
 
   const handleNameChange = (event) => {
     setNewName(event.target.value)
@@ -46,6 +48,10 @@ const App = () => {
       personsService.create(newPerson).then((returnedPerson) => {
         setPersons(persons.concat(returnedPerson))
       })
+			setNotifMsg(`Added ${newName}`)
+			setTimeout(() => {
+				setNotifMsg(null)
+			},5000)
     }
     setNewName("")
     setNewNumber("")
@@ -68,6 +74,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+			<Notification message={notifMsg} />
       <Filter filter={filter} handleFilterChange={handleFilterChange} />
       <h2>add a new</h2>
       <PersonForm

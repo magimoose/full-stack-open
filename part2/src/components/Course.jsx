@@ -1,4 +1,4 @@
-import Part from "./Part.jsx";
+import Part from "./Part.jsx"
 const Course = ({ course }) => {
   return (
     <div>
@@ -12,7 +12,7 @@ const Course = ({ course }) => {
         exercises
       </strong>
     </div>
-  );
-};
+  )
+}
 
-export default Course;
+export default Course

@@ -1,144 +1,89 @@
-import personsService from "./services/persons"
-import Notification from "./components/Notification.jsx"
-import { useState, useEffect } from "react"
+import {useState, useEffect} from "react"
+import countriesAPI from './services/countries.jsx'
+import weatherAPI from './services/weather.jsx'
 
 const App = () => {
-  const [persons, setPersons] = useState([])
+	const [search, setSearch] = useState('')
+	const [countries, setCountries] = useState([])
+	const [country, setCountry] = useState(null)
 
-  useEffect(() => {
-    personsService.getAll().then((initPersons) => {
-      setPersons(initPersons)
-    })
-  }, [])
+	useEffect(() => {
+		countriesAPI.getAll().then(list => {
+			setCountries(list)
+		})
+	},[])
 
-  const [newName, setNewName] = useState("")
-  const [newNumber, setNewNumber] = useState("")
-  const [filter, setNewFilter] = useState("")
-  const [notif, setNotif] = useState(null)
+	const handleSearchChange = (event) => {
+		if (country) {
+			setCountry(null)
+		}
+		setSearch(event.target.value)
+	}
 
-  const handleNameChange = (event) => {
-    setNewName(event.target.value)
-  }
-
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value)
-  }
-
-  const addName = (event) => {
-    event.preventDefault()
-    if (persons.map((person) => person.name).includes(newName)) {
-      if (
-        confirm(
-          `${newName} is already in the phonebook, would you like to update the number?`,
-        )
-      ) {
-        const id = persons.find((person) => person.name === newName).id
-        personsService
-          .update(id, { id: id, name: newName, number: newNumber })
-          .then(() =>
-            personsService.getAll().then((initPersons) => {
-              setPersons(initPersons)
-            }),
-          )
-      } else {
-        return
-      }
-    } else {
-      const newPerson = { name: newName, number: newNumber }
-      personsService.create(newPerson).then((returnedPerson) => {
-        setPersons(persons.concat(returnedPerson))
-      })
-      setNotif({msg: `Added ${newName}`, color: 'green'})
-      setTimeout(() => {
-        setNotif(null)
-      }, 5000)
-    }
-    setNewName("")
-    setNewNumber("")
-  }
-
-  const deletePerson = (id, name) => {
-    if (confirm(`Would you like to delete ${name}?`)) {
-      personsService.deletePers(id).then(() =>
-        personsService.getAll().then((initPersons) => {
-          setPersons(initPersons)
-        }),
-      ).catch(error => {
-					setNotif({msg: `${name} has already been removed`, color: 'red'})
-					setTimeout(() => {
-						setNotif(null)
-					}, 5000)
-					setPersons(persons.filter(p => p.id !== id))
-				})
-    }
-  }
-
-  const handleFilterChange = (event) => {
-    setNewFilter(event.target.value)
-  }
-
-  return (
-    <div>
-      <h2>Phonebook</h2>
-      <Notification notif={notif}/>
-      <Filter filter={filter} handleFilterChange={handleFilterChange} />
-      <h2>add a new</h2>
-      <PersonForm
-        addName={addName}
-        handleNameChange={handleNameChange}
-        newName={newName}
-        newNumber={newNumber}
-        handleNumberChange={handleNumberChange}
-      />
-      <h2>Numbers</h2>
-      <Persons persons={persons} filter={filter} deletePerson={deletePerson} />
-    </div>
-  )
+	return (
+	<div>
+		<CountriesForm search={search} handleSearchChange={handleSearchChange} />
+		<Countries countries={countries.filter(country => country.name.common.toLowerCase().includes(search.toLowerCase()))} setCountry={setCountry} country={country}/>
+		</div>
+	)
 }
 
-const Persons = (props) => {
-  console.log("rerendered")
-  return props.persons
-    .filter((person) =>
-      person.name.toLowerCase().includes(props.filter.toLowerCase()),
-    )
-    .map((person) => (
-      <div>
-        <div key={person.id}>
-          {person.name} {person.number}
-        </div>{" "}
-        <button
-          type="button"
-          onClick={() => props.deletePerson(person.id, person.name)}
-        >
-          deletee
-        </button>
-      </div>
-    ))
-}
-const PersonForm = (props) => {
-  return (
-    <form onSubmit={props.addName}>
-      <div>
-        name: <input value={props.newName} onChange={props.handleNameChange} />
-      </div>
-      <div>
-        number:{" "}
-        <input value={props.newNumber} onChange={props.handleNumberChange} />
-      </div>
-      <div>
-        <button type="submit">add</button>
-      </div>
-    </form>
-  )
+const Countries = (props) => {
+	const [weather, setWeather] = useState(null)
+
+	if (props.country) {
+		return <CountryInfo country={props.country} setWeather={setWeather} weather={weather}/>
+	}
+	if (props.countries.length > 10) {
+		return <div>Search query too broad</div>
+	}
+	if (props.countries.length === 1) {
+		const country = props.countries[0]
+		return <CountryInfo country={country} setWeather={setWeather} weather={weather}/>
+	}
+	if (weather) {
+		setWeather(null)
+	}
+	return props.countries.map(country => <div>{country.name.common} <button onClick={() => props.setCountry(country)}>show</button></div>)
 }
 
-const Filter = (props) => {
-  return (
-    <form>
-      filter shown with{" "}
-      <input value={props.filter} onChange={props.handleFilterChange} />
-    </form>
-  )
+const CountryInfo = ({country, setWeather, weather}) => {
+	if (weather) {
+	return (
+			<div>
+				<h1>{country.name.common}</h1>
+				<div>Capital {country.capital[0]}</div>
+				<div>Area {country.area}</div>
+				<h2>Languages</h2>
+				<ul>
+				{Object.values(country.languages).map(name => <li>{name}</li>)}
+				</ul>
+				<img src={country.flags.png}/>
+				<h2>Weather in {country.name.common}</h2>
+				<WeatherInfo weather={weather}/>
+			</div>
+	)
+	}
+	weatherAPI.getWeather(country.latlng[0], country.latlng[1]).then(result => setWeather(result))
+	return (<div>Loading...</div>)
 }
+
+const WeatherInfo = ({weather}) => {
+	return (
+	<div>
+			<div>Temperature {weather.main.feels_like} Celsius</div> 
+			<img src={`https://openweathermap.org/payload/api/media/file/${weather.weather[0].icon}.png`}/>
+			<div>Wind {weather.wind.speed} m/s</div>
+		</div>
+	)
+}
+
+const CountriesForm = (props) => {
+	return (
+		<form>
+			find countries <input value={props.search} onChange={props.handleSearchChange} />
+		</form>
+	)
+}
+
 export default App

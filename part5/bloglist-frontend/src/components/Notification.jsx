@@ -1,6 +1,6 @@
 const Notification = ({ notif }) => {
   if (notif === null) {
-    return null;
+    return null
   }
   const style = {
     color: notif.color,
@@ -10,9 +10,9 @@ const Notification = ({ notif }) => {
     borderRadius: "5px",
     padding: "10px",
     marginBottom: "10px",
-  };
+  }
 
-  return <div style={style}>{notif.msg}</div>;
-};
+  return <div style={style}>{notif.msg}</div>
+}
 
-export default Notification;
+export default Notification

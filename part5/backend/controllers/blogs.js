@@ -17,6 +17,22 @@ blogRouter.post('/', middleware.userExtract, async (request, response) => {
 	response.status(201).json(savedBlog)
 })
 
+blogRouter.put('/:id', middleware.userExtract, async (request, response) => {
+	const id = request.params.id
+	const blog = await Blog.findById(id)
+	if (!blog) {
+		return response.status(404).json({ error: 'blog not found for that id'})
+	}
+	if (!request.token) {
+    return response.status(401).json({ error: 'no token' })
+	}
+	if (request.user.id !== blog.user.toString()) {
+    return response.status(401).json({ error: 'wrong user' })
+	}
+	await Blog.findOneAndUpdate({id: id}, { ...request.body, user: blog.user.toString() })
+	response.status(200).end()
+})
+
 blogRouter.delete('/:id', middleware.userExtract, async (request, response) => {
 	const id = request.params.id
 	const blog = await Blog.findById(id)

@@ -14,11 +14,11 @@ const create = async newObject => {
   const config = {
     headers: { Authorization: token }
   }
-  const response = await axios.post(baseUrl, newObject, config)  
-return response.data
+  const response = await axios.post(baseUrl, newObject, config)
+  return response.data
 }
 
-const update = (id, newObject) => {
+const update = async (id, newObject) => {
   const config = {
     headers: { Authorization: token }
   }
@@ -27,12 +27,12 @@ const update = (id, newObject) => {
 }
 
 const deleteBlog = id => {
-	const config = {
-		headers: { Authorization: token }
-	}
-	console.log(token)
-	const request = axios.delete(`${ baseUrl }/${id}`, config)
-	return request.then(response => response.data)
+  const config = {
+    headers: { Authorization: token }
+  }
+  console.log(token)
+  const request = axios.delete(`${ baseUrl }/${id}`, config)
+  return request.then(response => response.data)
 }
 
 export default { getAll, create, update, setToken, deleteBlog }

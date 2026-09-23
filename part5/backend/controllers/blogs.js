@@ -26,11 +26,11 @@ blogRouter.put('/:id', middleware.userExtract, async (request, response) => {
 	if (!request.token) {
     return response.status(401).json({ error: 'no token' })
 	}
-	if (request.user.id !== blog.user.toString()) {
-    return response.status(401).json({ error: 'wrong user' })
-	}
-	await Blog.findOneAndUpdate({id: id}, { ...request.body, user: blog.user.toString() })
+	console.log(request.body)
+	console.log(id)
+	const result = await Blog.findOneAndUpdate({_id: id}, { ...request.body, user: blog.user.toString() })
 	response.status(200).end()
+	console.log(result)
 })
 
 blogRouter.delete('/:id', middleware.userExtract, async (request, response) => {
@@ -42,6 +42,8 @@ blogRouter.delete('/:id', middleware.userExtract, async (request, response) => {
 	if (!request.token) {
     return response.status(401).json({ error: 'no token' })
 	}
+	console.log(request.user.id)
+	console.log(blog.user)
 	if (request.user.id !== blog.user.toString()) {
     return response.status(401).json({ error: 'wrong user' })
 	}
